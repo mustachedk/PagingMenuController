@@ -49,17 +49,14 @@ public class MenuItemView: UIView {
     // MARK: - Label changer
     
     internal func focusLabel(selected: Bool) {
-        if case .RoundRect = options.menuItemMode {
-            backgroundColor = UIColor.clearColor()
-        } else {
-            backgroundColor = selected ? options.selectedBackgroundColor : options.backgroundColor
-        }
+        titleLabel.frame.origin.y = selected ? -4 : 0
         titleLabel.textColor = selected ? options.selectedTextColor : options.textColor
         titleLabel.font = selected ? options.selectedFont : options.font
-
+        
         // adjust label width if needed
         let labelSize = calculateLableSize()
         widthLabelConstraint.constant = labelSize.width
+        
     }
     
     // MARK: - Constructor
@@ -83,13 +80,14 @@ public class MenuItemView: UIView {
         titleLabel.userInteractionEnabled = true
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(titleLabel)
+        
     }
     
     private func layoutLabel() {
         let viewsDictionary = ["label": titleLabel]
         
         let labelSize = calculateLableSize()
-
+        
         let horizontalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("H:|[label]|", options: [], metrics: nil, views: viewsDictionary)
         let verticalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("V:|[label]|", options: [], metrics: nil, views: viewsDictionary)
         
@@ -103,7 +101,7 @@ public class MenuItemView: UIView {
     
     private func calculateLableSize(size: CGSize = UIScreen.mainScreen().bounds.size) -> CGSize {
         let labelSize = NSString(string: title).boundingRectWithSize(CGSizeMake(CGFloat.max, CGFloat.max), options: NSStringDrawingOptions.UsesLineFragmentOrigin, attributes: [NSFontAttributeName: titleLabel.font], context: nil).size
-
+        
         let itemWidth: CGFloat
         switch options.menuDisplayMode {
         case let .Standard(widthMode, _, _):

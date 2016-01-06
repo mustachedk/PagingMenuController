@@ -14,9 +14,10 @@ public class MenuView: UIScrollView {
     private var sortedMenuItemViews = [MenuItemView]()
     private var options: PagingMenuOptions!
     private var contentView: UIView!
-    private var underlineView: UIView!
+    public private(set) var underlineView: UIView!
     private var roundRectView: UIView!
     private var currentPage: Int = 0
+    private var firstTime = true
     
     // MARK: - Lifecycle
     
@@ -57,23 +58,23 @@ public class MenuView: UIScrollView {
         UIView.animateWithDuration(duration, animations: { [unowned self] () -> Void in
             self.focusMenuItem()
             self.positionMenuItemViews()
-        }) { [weak self] (_) in
-            guard let _ = self else { return }
-            
-            
-            
-            // relayout menu item views dynamically
-            if case .Infinite = self!.options.menuDisplayMode {
-                self!.relayoutMenuItemViews()
-            }
-            self!.positionMenuItemViews()
-            self!.setNeedsLayout()
-            self!.layoutIfNeeded()
-            
-            // show menu view when constructing is done
-            if !animated {
-                self!.alpha = 1
-            }
+            }) { [weak self] (_) in
+                guard let _ = self else { return }
+                
+                
+                
+                // relayout menu item views dynamically
+                if case .Infinite = self!.options.menuDisplayMode {
+                    self!.relayoutMenuItemViews()
+                }
+                self!.positionMenuItemViews()
+                self!.setNeedsLayout()
+                self!.layoutIfNeeded()
+                
+                // show menu view when constructing is done
+                if !animated {
+                    self!.alpha = 1
+                }
         }
     }
     
@@ -83,7 +84,7 @@ public class MenuView: UIScrollView {
         }
         contentView.setNeedsLayout()
         contentView.layoutIfNeeded()
-
+        
         animateUnderlineViewIfNeeded()
         animateRoundRectViewIfNeeded()
     }
@@ -190,12 +191,48 @@ public class MenuView: UIScrollView {
     }
     
     private func animateUnderlineViewIfNeeded() {
+        
         guard case let .Underline(_, _, horizontalPadding, _) = options.menuItemMode else { return }
         
         if let underlineView = underlineView {
+            
+            if underlineView.layer.animationKeys()?.count > 0 { return }
+            
             let targetFrame = menuItemViews[currentPage].frame
-            underlineView.frame.origin.x = targetFrame.minX + horizontalPadding
-            underlineView.frame.size.width = targetFrame.width - horizontalPadding * 2
+            
+            let originalX = underlineView.frame.origin.x
+            
+            let originalWidth = underlineView.frame.size.width
+            
+            let endX = targetFrame.minX + horizontalPadding
+            
+            UIView.animateWithDuration(0.3, animations: { () -> Void in
+                underlineView.frame.origin.x = originalX + originalWidth
+                underlineView.frame.size.width = 0
+                }) { (completed) -> Void in
+                    underlineView.frame.origin.x = endX
+                    
+                    if self.firstTime {
+                        UIView.animateWithDuration(0.3, animations: { () -> Void in
+                            
+                            for subview in self.menuItemViews[self.currentPage].subviews as [UIView] {
+                                if let label = subview as? UILabel {
+                                    label.frame.origin.y = -4
+                                    
+                                }
+                            }
+                            
+                        })
+                        
+                        self.firstTime = false
+                    }
+                    
+                    UIView.animateWithDuration(0.4) { () -> Void in
+                        underlineView.frame.size.width = originalWidth
+                    }
+                    
+            }
+            
         }
     }
     
@@ -208,12 +245,12 @@ public class MenuView: UIScrollView {
             roundRectView.frame.size.width = targetFrame.width - horizontalPadding * 2
         }
     }
-
+    
     private func relayoutMenuItemViews() {
         sortMenuItemViews()
         layoutMenuItemViews()
     }
-
+    
     private func positionMenuItemViews() {
         contentOffset.x = targetContentOffsetX()
         animateUnderlineViewIfNeeded()
@@ -278,7 +315,7 @@ public class MenuView: UIScrollView {
     private func focusMenuItem() {
         // make selected item focused
         menuItemViews.forEach { $0.focusLabel(menuItemViews.indexOf($0) == currentPage) }
-
+        
         // make selected item foreground
         sortedMenuItemViews.forEach { $0.layer.zPosition = menuItemViews.indexOf($0) == currentPage ? 0 : -1 }
         
