@@ -206,14 +206,14 @@ public class MenuView: UIScrollView {
             
             let endX = targetFrame.minX + horizontalPadding
             
-            UIView.animateWithDuration(0.3, animations: { () -> Void in
+            UIView.animateWithDuration(0.2, animations: { () -> Void in
                 underlineView.frame.origin.x = originalX + originalWidth
                 underlineView.frame.size.width = 0
                 }) { (completed) -> Void in
                     underlineView.frame.origin.x = endX
                     
                     if self.firstTime {
-                        UIView.animateWithDuration(0.3, animations: { () -> Void in
+                        UIView.animateWithDuration(0.2, animations: { () -> Void in
                             
                             for subview in self.menuItemViews[self.currentPage].subviews as [UIView] {
                                 if let label = subview as? UILabel {
@@ -227,7 +227,7 @@ public class MenuView: UIScrollView {
                         self.firstTime = false
                     }
                     
-                    UIView.animateWithDuration(0.4) { () -> Void in
+                    UIView.animateWithDuration(0.3) { () -> Void in
                         underlineView.frame.size.width = originalWidth
                     }
                     
